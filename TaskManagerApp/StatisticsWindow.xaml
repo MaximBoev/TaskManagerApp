@@ -1,0 +1,15 @@
+﻿<Window x:Class="TaskManagerApp.StatisticsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Task Statistics" Height="250" Width="300">
+    <Grid Margin="10">
+        <StackPanel>
+            <TextBlock Text="📊 Task Statistics" FontWeight="Bold" FontSize="16" Margin="0 0 0 10"/>
+            <TextBlock x:Name="CreatedText" />
+            <TextBlock x:Name="ModifiedText" />
+            <TextBlock x:Name="CompletedText" />
+            <TextBlock x:Name="DeletedText" />
+            <Button Content="Close" Click="Close_Click" Margin="0 20 0 0" HorizontalAlignment="Right" Width="75"/>
+        </StackPanel>
+    </Grid>
+</Window>

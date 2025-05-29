@@ -1,0 +1,29 @@
+﻿<Window x:Class="TaskManagerApp.AddTaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        Title="Добавить задачу" Height="450" Width="400">
+    <StackPanel Margin="20">
+
+        <TextBlock Text="Название задачи"/>
+        <TextBox x:Name="NameBox" Margin="0,5,0,10"/>
+
+        <TextBlock Text="Дата задачи"/>
+        <DatePicker x:Name="DateBox" SelectedDate="{x:Static sys:DateTime.Now}" Margin="0,5,0,10"/>
+
+        <TextBlock Text="Время начала"/>
+        <TextBox x:Name="StartTimeBox" Text="09:00" Margin="0,5,0,10"/>
+
+        <TextBlock Text="Время окончания"/>
+        <TextBox x:Name="EndTimeBox" Text="10:00" Margin="0,5,0,10"/>
+
+        <CheckBox x:Name="CompositeCheckBox" Content="Составная задача" Margin="0,5,0,5"/>
+        <CheckBox x:Name="DecoratorCheckBox" Content="Доп. уведомление (декоратор)" Margin="0,5,0,5"/>
+        <CheckBox x:Name="ProtectCheckBox" Content="Ограничить доступ (прокси)" Margin="0,5,0,5"/>
+
+        <TextBlock Text="Пароль (если нужно)"/>
+        <TextBox x:Name="PasswordBox" Margin="0,5,0,10"/>
+
+        <Button Content="Создать задачу" Click="OnCreateClick" Margin="0 10"/>
+    </StackPanel>
+</Window>

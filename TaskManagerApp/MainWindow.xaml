@@ -1,0 +1,75 @@
+﻿<Window x:Class="TaskManagerApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TaskManagerApp"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TreeView x:Name="TaskTree"
+          ItemsSource="{Binding}"
+          SelectedItemChanged="TaskTree_SelectedItemChanged"
+          Margin="10"
+          Height="300">
+            <TreeView.Resources>
+                <!-- Цветовая подсветка по статусу -->
+                <Style TargetType="TextBlock" x:Key="StatusStyle">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Status}" Value="ToDo">
+                            <Setter Property="Foreground" Value="Gray"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="InProgress">
+                            <Setter Property="Foreground" Value="DarkOrange"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="Completed">
+                            <Setter Property="Foreground" Value="Green"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TreeView.Resources>
+
+            <TreeView.ItemTemplate>
+                <HierarchicalDataTemplate ItemsSource="{Binding Subtasks}">
+                    <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="5">
+                        <StackPanel Orientation="Vertical">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,0,10,0"/>
+                                <TextBlock FontSize="10" Style="{StaticResource StatusStyle}">
+                                    <TextBlock.Text>
+                                        <MultiBinding StringFormat="{}{0} | {1:t} - {2:t}">
+                                            <Binding Path="Status"/>
+                                            <Binding Path="StartTime"/>
+                                            <Binding Path="EndTime"/>
+                                        </MultiBinding>
+                                    </TextBlock.Text>
+                                </TextBlock>
+
+                                <!-- Кнопка изменить -->
+                                <Button Content="✏️" Width="25" Height="20" Margin="10,0,0,0"
+                                Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"/>
+
+                                <!-- Кнопка удалить -->
+                                <Button Content="❌" Width="25" Height="20" Margin="5,0,0,0"
+                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </HierarchicalDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+            <Button Content="Добавить задачу" Width="150" Margin="10" Click="AddTask_Click"/>
+            <Button Content="➕ Добавить подзадачу" Width="150" Margin="10" Click="AddSubtask_Click"/>
+            <Button Content="📊 Статистика" Width="150" Margin="10" Click="ShowStats_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
