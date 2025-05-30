@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,7 @@ using TaskManagerApp.Models.State;
 
 namespace TaskManagerApp.Models
 {
-    public class CompositeTask : ITaskComponent, ITaskObserver, ICompositeExtractable
+    public class CompositeTask : ITaskComponent, ITaskObserver, ICompositeExtractable, ISubject
     {
         public string Name { get; set; }
         public DateTime StartTime { get; set; }
@@ -17,6 +18,7 @@ namespace TaskManagerApp.Models
         public bool IsExpanded { get; set; } = false;
 
         private List<ITaskComponent> _subtasks = new List<ITaskComponent>();
+        private readonly List<ITaskObserver> _observers = new List<ITaskObserver>();
 
         public TaskContext TaskContext { get; set; } = new TaskContext(new ToDoState());
 
@@ -45,14 +47,43 @@ namespace TaskManagerApp.Models
             }
         }
 
+        public void Attach(ITaskObserver observer)
+        {
+            if (!_observers.Contains(observer))
+                _observers.Add(observer);
+        }
+
+        public void Detach(ITaskObserver observer)
+        {
+            if (_observers.Contains(observer))
+                _observers.Remove(observer);
+        }
+
+        public void Notify()
+        {
+            foreach (var observer in _observers)
+            {
+                observer.Update(this.StartTime);
+            }
+            OnPropertyChanged(nameof(StartTime));
+        }
+
         public void AddSubtask(ITaskComponent task)
         {
             _subtasks.Add(task);
+            if (task is ITaskObserver observer)
+            {
+                Attach(observer);
+            }
         }
 
         public void RemoveSubtask(ITaskComponent task)
         {
             _subtasks.Remove(task);
+            if (task is ITaskObserver observer)
+            {
+                Detach(observer);
+            }
         }
 
         //public List<ITaskComponent> GetSubtasks() => _subtasks;
@@ -62,30 +93,23 @@ namespace TaskManagerApp.Models
         {
             foreach (var subtask in _subtasks)
             {
-                subtask.Tick(now); // рекурсивно
+                subtask.Tick(now);
             }
 
             if (Status == TaskStatus.ToDo && now >= StartTime)
             {
                 TaskContext.SetState(new InProgressState());
+                OnPropertyChanged(nameof(Status));
                 Execute();
             }
             else if (Status == TaskStatus.InProgress && now >= EndTime)
             {
                 TaskContext.SetState(new CompletedState());
+                OnPropertyChanged(nameof(Status));
                 Console.WriteLine($"Составная задача '{Name}' завершена.");
             }
-        }
-
-        private void NotifySubtasks()
-        {
-            foreach (var subtask in _subtasks)
-            {
-                if (subtask is ITaskObserver observer)
-                {
-                    observer.Update(this.StartTime);
-                }
-            }
+            OnPropertyChanged(nameof(StartTime));
+            OnPropertyChanged(nameof(EndTime));
         }
 
         public void Update(DateTime newTime)
@@ -94,7 +118,7 @@ namespace TaskManagerApp.Models
             StartTime = newTime;
             EndTime = StartTime + duration;
 
-            NotifySubtasks(); 
+            Notify(); 
         }
 
         public TaskMemento CreateMemento()
@@ -108,7 +132,7 @@ namespace TaskManagerApp.Models
             StartTime = memento.StartTime;
             EndTime = memento.EndTime;
 
-            NotifySubtasks();
+            Notify();
         }
 
         public void Execute()
@@ -136,6 +160,23 @@ namespace TaskManagerApp.Models
         public CompositeTask GetComposite()
         {
             return this;
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        public void UpdateTime(DateTime newStartTime)
+        {
+            TimeSpan duration = EndTime - StartTime;
+            StartTime = newStartTime;
+            EndTime = StartTime + duration;
+
+            OnPropertyChanged(nameof(StartTime));
+            OnPropertyChanged(nameof(EndTime));
+
+            Notify();
         }
     }
 }

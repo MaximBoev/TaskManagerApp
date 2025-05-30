@@ -1,0 +1,13 @@
+﻿<Window x:Class="TaskManagerApp.EditTaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Изменить задачу" Height="250" Width="400">
+    <StackPanel Margin="20">
+        <TextBlock Text="Новое время начала:"/>
+        <DatePicker x:Name="StartDatePicker" Margin="0,5"/>
+        <TextBlock Text="Новое время (часы:минуты):"/>
+        <TextBox x:Name="StartTimeBox" Text="09:00" Margin="0,5"/>
+        <Button Content="Сохранить" Click="OnSaveClick" Margin="0,15,0,0"/>
+    </StackPanel>
+</Window>
+

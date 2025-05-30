@@ -10,6 +10,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <TreeView x:Name="TaskTree"
@@ -18,17 +19,23 @@
           Margin="10"
           Height="300">
             <TreeView.Resources>
-                <!-- Цветовая подсветка по статусу -->
-                <Style TargetType="TextBlock" x:Key="StatusStyle">
+                <!-- Преобразователь статуса в цвет -->
+                <Style TargetType="TreeViewItem">
+                    <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                </Style>
+                <Style x:Key="StatusBorderStyle" TargetType="Border">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding Status}" Value="ToDo">
-                            <Setter Property="Foreground" Value="Gray"/>
+                            <Setter Property="Background" Value="#FFFDE9" />
+                            <Setter Property="BorderBrush" Value="Goldenrod" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Status}" Value="InProgress">
-                            <Setter Property="Foreground" Value="DarkOrange"/>
+                            <Setter Property="Background" Value="#E6F7FF" />
+                            <Setter Property="BorderBrush" Value="SteelBlue" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Status}" Value="Completed">
-                            <Setter Property="Foreground" Value="Green"/>
+                            <Setter Property="Background" Value="#E8FBE8" />
+                            <Setter Property="BorderBrush" Value="Green" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>
@@ -36,40 +43,61 @@
 
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate ItemsSource="{Binding Subtasks}">
-                    <Border BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="5">
-                        <StackPanel Orientation="Vertical">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,0,10,0"/>
-                                <TextBlock FontSize="10" Style="{StaticResource StatusStyle}">
+                    <Border Style="{StaticResource StatusBorderStyle}"
+                    Padding="5" Margin="3" BorderThickness="1" CornerRadius="5">
+                        <DockPanel>
+                            <!-- Левая часть: Название + Время -->
+                            <StackPanel Orientation="Vertical" DockPanel.Dock="Left" Width="400">
+                                <TextBlock Text="{Binding Name}"
+                                   FontWeight="Bold"
+                                   FontSize="13"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="#333"/>
+                                <TextBlock FontSize="11" Foreground="Gray">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0} | {1:t} - {2:t}">
-                                            <Binding Path="Status"/>
-                                            <Binding Path="StartTime"/>
-                                            <Binding Path="EndTime"/>
+                                            <Binding Path="Status" />
+                                            <Binding Path="StartTime" />
+                                            <Binding Path="EndTime" />
                                         </MultiBinding>
                                     </TextBlock.Text>
                                 </TextBlock>
-
-                                <!-- Кнопка изменить -->
-                                <Button Content="✏️" Width="25" Height="20" Margin="10,0,0,0"
-                                Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"/>
-
-                                <!-- Кнопка удалить -->
-                                <Button Content="❌" Width="25" Height="20" Margin="5,0,0,0"
-                                Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}"/>
                             </StackPanel>
-                        </StackPanel>
+
+                            <!-- Правая часть: Кнопки -->
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                                <Button Content="✏" Width="25" Height="25" Margin="3"
+                                ToolTip="Изменить"
+                                Click="EditTask_Click"/>
+                                <Button Content="🗑" Width="25" Height="25" Margin="3"
+                                ToolTip="Удалить"
+                                Click="DeleteTask_Click"/>
+                            </StackPanel>
+                        </DockPanel>
                     </Border>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
         </TreeView>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <Button Content="Добавить задачу" Width="150" Margin="10" Click="AddTask_Click"/>
-            <Button Content="➕ Добавить подзадачу" Width="150" Margin="10" Click="AddSubtask_Click"/>
-            <Button Content="📊 Статистика" Width="150" Margin="10" Click="ShowStats_Click"/>
+        <!-- Основные действия -->
+        <StackPanel Grid.Row="1"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center"
+                Margin="10">
+            <Button Content="🆕 Добавить задачу" Width="160" Margin="5" Click="AddTask_Click"/>
+            <Button Content="➕ Добавить подзадачу" Width="160" Margin="5" Click="AddSubtask_Click"/>
+            <Button Content="✏ Изменить время" Width="160" Margin="5" Click="EditTask_Click"/>
+            <Button Content="⏪ Отменить изменения" Width="160" Margin="5" Click="UndoTask_Click"/>
+        </StackPanel>
+
+        <!-- Шаблоны и статистика -->
+        <StackPanel Grid.Row="2"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center"
+                Margin="10">
+            <Button Content="📋 Сохранить в шаблоны" Width="160" Margin="5" Click="SaveAsPrototype_Click"/>
+            <Button Content="📥 Добавить из шаблонов" Width="160" Margin="5" Click="AddFromPrototype_Click"/>
+            <Button Content="📊 Статистика" Width="160" Margin="5" Click="ShowStats_Click"/>
         </StackPanel>
     </Grid>
 </Window>

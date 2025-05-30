@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using TaskManagerApp.Models;
 using TaskManagerApp.Models.Interfaces;
+using TaskManagerApp.Models.Prototype;
 using TaskManagerApp.ViewModels;
 
 namespace TaskManagerApp
@@ -26,6 +27,7 @@ namespace TaskManagerApp
     public partial class MainWindow : Window
     {
         private ObservableCollection<ITaskComponent> _rootTasks = new ObservableCollection<ITaskComponent>();
+        private readonly Dictionary<ITaskComponent, TaskCaretaker> _caretakers = new Dictionary<ITaskComponent, TaskCaretaker> ();
         private DispatcherTimer _timer;
         private ITaskComponent _selectedTask;
         public MainWindow()
@@ -33,11 +35,13 @@ namespace TaskManagerApp
             InitializeComponent();
             DataContext = _rootTasks;
             TaskTree.ItemsSource = _rootTasks;
+            LoadDefaultPrototypes();
             
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += Timer_Tick;
             _timer.Start();
+            UpdateTaskTree();
         }
         private void ShowStats_Click(object sender, RoutedEventArgs e)
         {
@@ -99,6 +103,150 @@ namespace TaskManagerApp
         {
             TaskTree.ItemsSource = null;
             TaskTree.ItemsSource = _rootTasks;
+        }
+
+        private void EditTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTask != null)
+            {
+                SaveMementoForTask(_selectedTask);
+                var editWindow = new EditTaskWindow(_selectedTask);
+                if (editWindow.ShowDialog() == true)
+                {
+                    UpdateTaskTree(); 
+                }
+            }
+            else
+            {
+                MessageBox.Show("Выберите задачу для редактирования.");
+            }
+        }
+
+        private void SaveMementoForTask(ITaskComponent task)
+        {
+            if (!_caretakers.ContainsKey(task))
+                _caretakers[task] = new TaskCaretaker();
+
+            _caretakers[task].Save(task.CreateMemento());
+        }
+
+        private void UndoTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTask == null)
+            {
+                MessageBox.Show("Выберите задачу для отката.");
+                return;
+            }
+
+            if (_caretakers.TryGetValue(_selectedTask, out var caretaker) && caretaker.HasUndo)
+            {
+                var memento = caretaker.Undo();
+                _selectedTask.RestoreMemento(memento);
+                MessageBox.Show("Задача восстановлена.");
+                UpdateTaskTree();
+            }
+            else
+            {
+                MessageBox.Show("Нет сохранённого состояния.");
+            }
+        }
+
+        private void SaveAsPrototype_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTask != null)
+            {
+                TaskPrototypeBuffer.Instance.AddPrototype(_selectedTask);
+                MessageBox.Show("Задача сохранена в шаблоны.");
+            }
+            else
+            {
+                MessageBox.Show("Выберите задачу для сохранения.");
+            }
+        }
+
+        private void AddFromPrototype_Click(object sender, RoutedEventArgs e)
+        {
+            var prototypeWindow = new PrototypeWindow();
+            if (prototypeWindow.ShowDialog() == true && prototypeWindow.SelectedPrototype != null)
+            {
+                var task = prototypeWindow.SelectedPrototype;
+                _rootTasks.Add(task);
+                UpdateTaskTree();
+            }
+        }
+
+        private void DeleteTask_Click(object sender, RoutedEventArgs e)
+        {
+            if (_selectedTask == null)
+            {
+                MessageBox.Show("Сначала выберите задачу для удаления.", "Удаление", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (MessageBox.Show($"Вы уверены, что хотите удалить задачу '{_selectedTask.Name}'?", "Подтвердите удаление", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
+            {
+                foreach (var task in _rootTasks.ToList())
+                {
+                    if (task is ICompositeExtractable extractable)
+                    {
+                        var composite = extractable.GetComposite();
+                        if (composite != null && composite.Subtasks.Contains(_selectedTask))
+                        {
+                            composite.RemoveSubtask(_selectedTask);
+                            UpdateTaskTree();
+                            _selectedTask = null;
+                            return;
+                        }
+                    }
+                }
+
+                if (_rootTasks.Contains(_selectedTask))
+                {
+                    _rootTasks.Remove(_selectedTask);
+                    UpdateTaskTree();
+                    _selectedTask = null;
+                    return;
+                }
+
+                MessageBox.Show("Не удалось удалить задачу. Возможно, это вложенный декоратор или прокси.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void LoadDefaultPrototypes()
+        {
+            var morning = new CompositeTask
+            {
+                Name = "☀ Утро",
+                StartTime = DateTime.Today.AddHours(6),
+                EndTime = DateTime.Today.AddHours(9)
+            };
+            morning.AddSubtask(new SimpleTask { Name = "Проснуться", StartTime = DateTime.Today.AddHours(6), EndTime = DateTime.Today.AddHours(6.5) });
+            morning.AddSubtask(new SimpleTask { Name = "Зарядка", StartTime = DateTime.Today.AddHours(6.5), EndTime = DateTime.Today.AddHours(7) });
+            morning.AddSubtask(new SimpleTask { Name = "Завтрак", StartTime = DateTime.Today.AddHours(7), EndTime = DateTime.Today.AddHours(7.5) });
+
+            var lunch = new CompositeTask
+            {
+                Name = "🍽 Обед",
+                StartTime = DateTime.Today.AddHours(12),
+                EndTime = DateTime.Today.AddHours(14)
+            };
+            lunch.AddSubtask(new SimpleTask { Name = "Приготовить еду", StartTime = DateTime.Today.AddHours(12), EndTime = DateTime.Today.AddHours(12.5) });
+            lunch.AddSubtask(new SimpleTask { Name = "Поесть", StartTime = DateTime.Today.AddHours(12.5), EndTime = DateTime.Today.AddHours(13) });
+            lunch.AddSubtask(new SimpleTask { Name = "Немного отдохнуть", StartTime = DateTime.Today.AddHours(13), EndTime = DateTime.Today.AddHours(14) });
+
+            var evening = new CompositeTask
+            {
+                Name = "🌙 Вечер",
+                StartTime = DateTime.Today.AddHours(18),
+                EndTime = DateTime.Today.AddHours(22)
+            };
+            evening.AddSubtask(new SimpleTask { Name = "Ужин", StartTime = DateTime.Today.AddHours(18), EndTime = DateTime.Today.AddHours(18.5) });
+            evening.AddSubtask(new SimpleTask { Name = "Свободное время", StartTime = DateTime.Today.AddHours(18.5), EndTime = DateTime.Today.AddHours(20.5) });
+            evening.AddSubtask(new SimpleTask { Name = "Подготовка ко сну", StartTime = DateTime.Today.AddHours(20.5), EndTime = DateTime.Today.AddHours(22) });
+
+            TaskPrototypeBuffer.Instance.AddPrototype(morning);
+            TaskPrototypeBuffer.Instance.AddPrototype(lunch);
+            TaskPrototypeBuffer.Instance.AddPrototype(evening);
         }
     }
 }

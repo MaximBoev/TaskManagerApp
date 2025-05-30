@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,7 +8,7 @@ using TaskManagerApp.Models.Memento;
 
 namespace TaskManagerApp.Models
 {
-    public interface ITaskComponent
+    public interface ITaskComponent : INotifyPropertyChanged
     {
         string Name { get; set; }
         TaskStatus Status { get; set; }
@@ -28,5 +29,7 @@ namespace TaskManagerApp.Models
         void Execute(); 
 
         ITaskComponent Clone();
+
+        void UpdateTime(DateTime newStart);
     }
 }

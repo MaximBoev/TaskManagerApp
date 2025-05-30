@@ -58,13 +58,18 @@
     <Compile Include="AddTaskWindow.xaml.cs">
       <DependentUpon>AddTaskWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="EditTaskWindow.xaml.cs">
+      <DependentUpon>EditTaskWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Models\CompositeTask.cs" />
     <Compile Include="Models\Decorator\ConfirmationDecorator.cs" />
     <Compile Include="Models\Decorator\NotificationDecorator.cs" />
     <Compile Include="Models\Decorator\TaskDecorator.cs" />
     <Compile Include="Models\Interfaces\ICompositeExtractable.cs" />
+    <Compile Include="Models\Interfaces\ISubject.cs" />
     <Compile Include="Models\Interfaces\ITaskObserver.cs" />
     <Compile Include="Models\Memento\TaskMemento.cs" />
+    <Compile Include="Models\Prototype\TaskPrototypeBuffer.cs" />
     <Compile Include="Models\Proxies\ProtectedTaskProxy.cs" />
     <Compile Include="Models\SimpleTask.cs" />
     <Compile Include="Models\State\CompletedState.cs" />
@@ -76,12 +81,22 @@
     <Compile Include="Models\TaskHistoryManager.cs" />
     <Compile Include="Models\TaskStatistics.cs" />
     <Compile Include="Models\TaskStatus.cs" />
+    <Compile Include="PasswordPromptWindow.xaml.cs">
+      <DependentUpon>PasswordPromptWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PrototypeWindow.xaml.cs">
+      <DependentUpon>PrototypeWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="StatisticsWindow.xaml.cs">
       <DependentUpon>StatisticsWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewModels\AddTaskViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Page Include="AddTaskWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="EditTaskWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -97,6 +112,14 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="PasswordPromptWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="PrototypeWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="StatisticsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

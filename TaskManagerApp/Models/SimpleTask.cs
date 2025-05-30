@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,7 +39,6 @@ namespace TaskManagerApp.Models
             }
             set
             {
-                // По желанию: вручную изменить состояние
                 if (value == TaskStatus.ToDo)
                     TaskContext.SetState(new ToDoState()); 
                 else if (value == TaskStatus.InProgress)
@@ -53,13 +53,17 @@ namespace TaskManagerApp.Models
             if (Status == TaskStatus.ToDo && now >= StartTime)
             {
                 TaskContext.SetState(new InProgressState());
+                OnPropertyChanged(nameof(Status));
                 Execute();
             }
             else if (Status == TaskStatus.InProgress && now >= EndTime)
             {
                 TaskContext.SetState(new CompletedState());
+                OnPropertyChanged(nameof(Status));
                 Console.WriteLine($"Задача '{Name}' завершена.");
             }
+            OnPropertyChanged(nameof(StartTime));
+            OnPropertyChanged(nameof(EndTime));
         }
 
         public void Update(DateTime newTime)
@@ -67,6 +71,7 @@ namespace TaskManagerApp.Models
             TimeSpan duration = EndTime - StartTime;
             StartTime = newTime;
             EndTime = StartTime + duration;
+            OnPropertyChanged(nameof(StartTime));
         }
 
         public TaskMemento CreateMemento()
@@ -94,6 +99,22 @@ namespace TaskManagerApp.Models
                 StartTime = this.StartTime,
                 EndTime = this.EndTime
             };
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void UpdateTime(DateTime newStartTime)
+        {
+            TimeSpan duration = EndTime - StartTime;
+            StartTime = newStartTime;
+            EndTime = StartTime + duration;
+
+            OnPropertyChanged(nameof(StartTime));
+            OnPropertyChanged(nameof(EndTime));
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace TaskManagerApp.Models.Decorator
         protected TaskDecorator(ITaskComponent innerTask)
         {
             _innerTask = innerTask;
+            _innerTask.PropertyChanged += (s, e) => PropertyChanged?.Invoke(this, e);
         }
 
         public virtual string Name
@@ -50,6 +52,7 @@ namespace TaskManagerApp.Models.Decorator
         public virtual TaskMemento CreateMemento() => _innerTask.CreateMemento();
         public bool IsExpanded { get; set; } = false;
         public virtual void RestoreMemento(TaskMemento memento) => _innerTask.RestoreMemento(memento);
+        public void UpdateTime(DateTime newStart) => _innerTask.UpdateTime(newStart);
 
         public virtual void Execute() => _innerTask.Execute();
 
@@ -57,6 +60,12 @@ namespace TaskManagerApp.Models.Decorator
         {
             var clonedTask = _innerTask.Clone();
             return CreateNewDecorator(clonedTask);
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         protected abstract TaskDecorator CreateNewDecorator(ITaskComponent task);
