@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using TaskManagerApp.Utils;
 
 namespace TaskManagerApp.Models.State
 {
@@ -12,6 +13,7 @@ namespace TaskManagerApp.Models.State
         public void Enter(ITaskComponent task)
         {
             // опционально: лог или UI-обновление
+            TaskLogger.Log($"[ENTER] Задача '{task.Name}' вошла в состояние {GetStateName()}");
         }
 
         public void Execute(ITaskComponent task)
@@ -37,7 +39,7 @@ namespace TaskManagerApp.Models.State
         public bool CanEdit(ITaskComponent task) => false;
 
         public bool CanDelete(ITaskComponent task) => false;
-        public string GetStateName() => "ToDo";
+        public string GetStateName() => "Completed";
 
         public TaskStatus GetStatus() => TaskStatus.Completed;
 

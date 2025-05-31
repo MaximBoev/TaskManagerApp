@@ -41,9 +41,9 @@ namespace TaskManagerApp.Models
 
         public SimpleTask()
         {
-            TaskContext = new TaskContext(new ToDoState())
+            TaskContext = new TaskContext(this, new ToDoState())
             {
-                Owner = this
+               
             };
             Status = TaskContext.GetStatus();
         }

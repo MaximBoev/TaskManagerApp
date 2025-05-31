@@ -9,9 +9,10 @@ namespace TaskManagerApp.Models.State
     public class TaskContext
     {
         private ITaskState _state;
-
-        public TaskContext(ITaskState initialState)
+        public event Action<TaskStatus> OnStatusChanged;
+        public TaskContext(ITaskComponent owner, ITaskState initialState)
         {
+            Owner = owner;
             TransitionTo(initialState);
         }
 
@@ -19,6 +20,7 @@ namespace TaskManagerApp.Models.State
         {
             _state = newState;
             _state.Enter(Owner);
+            OnStatusChanged?.Invoke(GetStatus());
         }
 
         public ITaskComponent Owner { get; set; }

@@ -37,7 +37,7 @@ namespace TaskManagerApp
             InitializeComponent();
             DataContext = _rootTasks;
             TaskTree.ItemsSource = _rootTasks;
-            LoadDefaultPrototypes();
+            //LoadDefaultPrototypes();
             
             _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
@@ -60,6 +60,8 @@ namespace TaskManagerApp
                 var task = addWindow.CreatedTask;
                 task.IsExpanded = true;
                 _rootTasks.Add(task);
+                TaskHistoryManager.Instance.Save(task);
+                TaskStatistics.Instance.IncrementCreated();
                 UpdateTaskTree();
             }
         }
@@ -115,7 +117,9 @@ namespace TaskManagerApp
                 var editWindow = new EditTaskWindow(_selectedTask);
                 if (editWindow.ShowDialog() == true)
                 {
-                    UpdateTaskTree(); 
+                    UpdateTaskTree();
+                    TaskHistoryManager.Instance.Save(_selectedTask);
+                    TaskStatistics.Instance.IncrementCreated();
                 }
             }
             else

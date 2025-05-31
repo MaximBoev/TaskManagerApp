@@ -26,9 +26,13 @@ namespace TaskManagerApp.Models
 
         public CompositeTask()
         {
-            TaskContext = new TaskContext(new ToDoState())
+            TaskContext = new TaskContext(this, new ToDoState())
             {
-                Owner = this
+
+            };
+            TaskContext.OnStatusChanged += status =>
+            {
+                Status = status;
             };
             Status = TaskContext.GetStatus();
         }
@@ -202,6 +206,7 @@ namespace TaskManagerApp.Models
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
         }
         public void UpdateTime(DateTime newStartTime)
         {

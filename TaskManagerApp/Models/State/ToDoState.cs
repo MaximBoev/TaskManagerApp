@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using TaskManagerApp.Utils;
 
 namespace TaskManagerApp.Models.State
 {
@@ -12,6 +13,8 @@ namespace TaskManagerApp.Models.State
         public void Enter(ITaskComponent task)
         {
             // опционально: лог или UI-обновление
+            var taskName = task?.Name ?? "Неизвестная задача";
+            TaskLogger.Log($"[ENTER] Задача '{task.Name}' вошла в состояние {GetStateName()}");
         }
 
         public void Tick(ITaskComponent task, DateTime now)
