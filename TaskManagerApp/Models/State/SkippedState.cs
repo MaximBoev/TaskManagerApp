@@ -7,20 +7,11 @@ using System.Windows;
 
 namespace TaskManagerApp.Models.State
 {
-    public class ToDoState : ITaskState 
+    public class SkippedState : ITaskState
     {
         public void Enter(ITaskComponent task)
         {
             // опционально: лог или UI-обновление
-        }
-
-        public void Tick(ITaskComponent task, DateTime now)
-        {
-            if (now >= task.StartTime)
-            {
-                task.TaskContext.TransitionTo(new InProgressState());
-                task.Execute(); 
-            }
         }
 
         public void Start(ITaskComponent task)
@@ -30,22 +21,22 @@ namespace TaskManagerApp.Models.State
 
         public void Execute(ITaskComponent task)
         {
-            MessageBox.Show("⛔ Задачи в статусе 'ToDo' запускаются только автоматически.");
+            task.TaskContext.TransitionTo(new ToDoState());
         }
 
         public void Complete(ITaskComponent task)
         {
-            MessageBox.Show("⛔ Нельзя завершить задачу, которая ещё не началась.");
+            MessageBox.Show("⛔ Сначала повторно активируйте задачу.");
         }
 
         public void Fail(ITaskComponent task)
         {
-            MessageBox.Show("⛔ Задача ещё не выполнялась, нельзя пометить как проваленную.");
+            task.TaskContext.TransitionTo(new FailedState());
         }
 
         public void Skip(ITaskComponent task)
         {
-            task.TaskContext.TransitionTo(new SkippedState());
+            MessageBox.Show("⛔ Задача уже пропущена.");
         }
 
         public bool CanEdit(ITaskComponent task) => true;
@@ -53,6 +44,11 @@ namespace TaskManagerApp.Models.State
         public bool CanDelete(ITaskComponent task) => true;
         public string GetStateName() => "ToDo";
 
-        public TaskStatus GetStatus() => TaskStatus.ToDo;
+        public TaskStatus GetStatus() => TaskStatus.Skipped;
+
+        public void Tick(ITaskComponent task, DateTime now)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

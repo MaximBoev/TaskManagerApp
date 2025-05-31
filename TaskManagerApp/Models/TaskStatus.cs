@@ -10,6 +10,8 @@ namespace TaskManagerApp.Models
     {
         ToDo,
         InProgress,
-        Completed
+        Completed,
+        Failed,
+        Skipped
     }
 }

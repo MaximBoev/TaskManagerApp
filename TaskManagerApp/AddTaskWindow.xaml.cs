@@ -55,7 +55,9 @@ namespace TaskManagerApp
                     IsComposite = CompositeCheckBox.IsChecked == true,
                     UseDecorator = DecoratorCheckBox.IsChecked == true,
                     UseProtection = ProtectCheckBox.IsChecked == true,
-                    Password = PasswordBox.Text
+                    Password = PasswordBox.Text,
+                    ScriptName = ScriptBox.Text,
+                    UseLogging = LoggingCheckBox.IsChecked == true
                 };
 
                 CreatedTask = viewModel.CreateTask();

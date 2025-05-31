@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TaskManagerApp.Models.Interfaces;
 using TaskManagerApp.Models.Memento;
 using TaskManagerApp.Models.State;
+using TaskManagerApp.Utils;
 
 namespace TaskManagerApp.Models
 {
@@ -18,32 +19,30 @@ namespace TaskManagerApp.Models
         public bool IsExpanded { get; set; } = false;
 
         private List<ITaskComponent> _subtasks = new List<ITaskComponent>();
+
         private readonly List<ITaskObserver> _observers = new List<ITaskObserver>();
 
-        public TaskContext TaskContext { get; set; } = new TaskContext(new ToDoState());
+        public TaskContext TaskContext { get; private set; }
 
+        public CompositeTask()
+        {
+            TaskContext = new TaskContext(new ToDoState())
+            {
+                Owner = this
+            };
+            Status = TaskContext.GetStatus();
+        }
+        private TaskStatus _status;
         public TaskStatus Status
         {
-            get
+            get => _status;
+            private set
             {
-                if (TaskContext.State is ToDoState)
-                    return TaskStatus.ToDo;
-                else if (TaskContext.State is InProgressState)
-                    return TaskStatus.InProgress;
-                else if (TaskContext.State is CompletedState)
-                    return TaskStatus.Completed;
-                else
-                    throw new InvalidOperationException("Unknown state");
-            }
-            set
-            {
-                // По желанию: вручную изменить состояние
-                if (value == TaskStatus.ToDo)
-                    TaskContext.SetState(new ToDoState());
-                else if (value == TaskStatus.InProgress)
-                    TaskContext.SetState(new InProgressState());
-                else if (value == TaskStatus.Completed)
-                    TaskContext.SetState(new CompletedState());
+                if (_status != value)
+                {
+                    _status = value;
+                    OnPropertyChanged(nameof(Status));
+                }
             }
         }
 
@@ -86,7 +85,6 @@ namespace TaskManagerApp.Models
             }
         }
 
-        //public List<ITaskComponent> GetSubtasks() => _subtasks;
         public IEnumerable<ITaskComponent> Subtasks => _subtasks;
 
         public void Tick(DateTime now)
@@ -96,18 +94,9 @@ namespace TaskManagerApp.Models
                 subtask.Tick(now);
             }
 
-            if (Status == TaskStatus.ToDo && now >= StartTime)
-            {
-                TaskContext.SetState(new InProgressState());
-                OnPropertyChanged(nameof(Status));
-                Execute();
-            }
-            else if (Status == TaskStatus.InProgress && now >= EndTime)
-            {
-                TaskContext.SetState(new CompletedState());
-                OnPropertyChanged(nameof(Status));
-                Console.WriteLine($"Составная задача '{Name}' завершена.");
-            }
+            TaskContext.Tick(this, now);
+            Status = TaskContext.GetStatus();
+            OnPropertyChanged(nameof(Status));
             OnPropertyChanged(nameof(StartTime));
             OnPropertyChanged(nameof(EndTime));
         }
@@ -137,7 +126,54 @@ namespace TaskManagerApp.Models
 
         public void Execute()
         {
-            Console.WriteLine($"[CompositeTask] Задача '{Name}' запущена!");
+            TaskLogger.Log($"Выполнена составная задача: '{Name}' | Время: {StartTime:t} - {EndTime:t}");
+        }
+
+
+        public void TryExecute()
+        {
+            foreach (var subtask in _subtasks)
+            {
+                subtask.TryExecute();
+                OnPropertyChanged(nameof(Status));
+            }
+        }
+
+        public void TryComplete()
+        {
+            foreach (var subtask in _subtasks)
+            {
+                subtask.TryComplete();
+                OnPropertyChanged(nameof(Status));
+            }
+        }
+
+        public void TryFail()
+        {
+            foreach (var subtask in _subtasks)
+            {
+                subtask.TryFail();
+                OnPropertyChanged(nameof(Status));
+            }
+        }
+
+        public void TrySkip()
+        {
+            foreach (var subtask in _subtasks)
+            {
+                subtask.TrySkip();
+                OnPropertyChanged(nameof(Status));
+            }
+        }
+
+        public bool CanEdit()
+        {
+            return _subtasks.All(t => t.CanEdit());
+        }
+
+        public bool CanDelete()
+        {
+            return _subtasks.All(t => t.CanDelete());
         }
 
         public ITaskComponent Clone()

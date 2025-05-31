@@ -63,9 +63,11 @@
     </Compile>
     <Compile Include="Models\CompositeTask.cs" />
     <Compile Include="Models\Decorator\ConfirmationDecorator.cs" />
+    <Compile Include="Models\Decorator\LoggingDecorator.cs" />
     <Compile Include="Models\Decorator\NotificationDecorator.cs" />
     <Compile Include="Models\Decorator\TaskDecorator.cs" />
     <Compile Include="Models\Interfaces\ICompositeExtractable.cs" />
+    <Compile Include="Models\Interfaces\IScriptAware.cs" />
     <Compile Include="Models\Interfaces\ISubject.cs" />
     <Compile Include="Models\Interfaces\ITaskObserver.cs" />
     <Compile Include="Models\Memento\TaskMemento.cs" />
@@ -73,9 +75,12 @@
     <Compile Include="Models\Proxies\ProtectedTaskProxy.cs" />
     <Compile Include="Models\SimpleTask.cs" />
     <Compile Include="Models\State\CompletedState.cs" />
+    <Compile Include="Models\State\FailedState.cs" />
     <Compile Include="Models\State\InProgressState.cs" />
     <Compile Include="Models\State\ITaskState.cs" />
+    <Compile Include="Models\State\SkippedState.cs" />
     <Compile Include="Models\State\TaskContext.cs" />
+    <Compile Include="Models\State\TaskStateBase.cs" />
     <Compile Include="Models\State\ToDoState.cs" />
     <Compile Include="Models\TaskCaretaker.cs" />
     <Compile Include="Models\TaskHistoryManager.cs" />
@@ -90,6 +95,8 @@
     <Compile Include="StatisticsWindow.xaml.cs">
       <DependentUpon>StatisticsWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Utils\NullToVisibilityConverter.cs" />
+    <Compile Include="Utils\TaskLogger.cs" />
     <Compile Include="ViewModels\AddTaskViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Page Include="AddTaskWindow.xaml">
@@ -156,7 +163,6 @@
     <Folder Include="Core\" />
     <Folder Include="Patterns\" />
     <Folder Include="Services\" />
-    <Folder Include="Utils\" />
     <Folder Include="Views\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

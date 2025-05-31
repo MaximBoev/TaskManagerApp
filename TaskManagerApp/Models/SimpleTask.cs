@@ -7,61 +7,58 @@ using System.Threading.Tasks;
 using TaskManagerApp.Models.Interfaces;
 using TaskManagerApp.Models.Memento;
 using TaskManagerApp.Models.State;
+using TaskManagerApp.Utils;
 
 namespace TaskManagerApp.Models
 {
-    public class SimpleTask : ITaskComponent, ITaskObserver
+    public class SimpleTask : ITaskComponent, ITaskObserver, IScriptAware
     {
         public string Name { get; set; }
+        public string ScriptName { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public bool IsExpanded { get; set; } = false;
 
-        public void AddSubtask(ITaskComponent task) { /* не используется */ }
-        public void RemoveSubtask(ITaskComponent task) { /* не используется */ }
-        //public List<ITaskComponent> GetSubtasks() => new List<ITaskComponent>();
+        public void AddSubtask(ITaskComponent task) { }
+        public void RemoveSubtask(ITaskComponent task) { }
         public IEnumerable<ITaskComponent> Subtasks => Enumerable.Empty<ITaskComponent>();
 
-        public TaskContext TaskContext { get; set; } = new TaskContext(new ToDoState());
+        public TaskContext TaskContext { get; private set; }
 
+        private TaskStatus _status;
         public TaskStatus Status
         {
-            get
+            get => _status;
+            private set
             {
-                if (TaskContext.State is ToDoState)
-                    return TaskStatus.ToDo;
-                else if (TaskContext.State is InProgressState)
-                    return TaskStatus.InProgress;
-                else if (TaskContext.State is CompletedState)
-                    return TaskStatus.Completed;
-                else
-                    throw new InvalidOperationException("Unknown state");
+                if (_status != value)
+                {
+                    _status = value;
+                    OnPropertyChanged(nameof(Status));
+                }
             }
-            set
+        }
+
+        public SimpleTask()
+        {
+            TaskContext = new TaskContext(new ToDoState())
             {
-                if (value == TaskStatus.ToDo)
-                    TaskContext.SetState(new ToDoState()); 
-                else if (value == TaskStatus.InProgress)
-                    TaskContext.SetState(new InProgressState());
-                else if (value == TaskStatus.Completed)
-                    TaskContext.SetState(new CompletedState());
-            }
+                Owner = this
+            };
+            Status = TaskContext.GetStatus();
         }
 
         public void Tick(DateTime now)
         {
+
             if (Status == TaskStatus.ToDo && now >= StartTime)
-            {
-                TaskContext.SetState(new InProgressState());
-                OnPropertyChanged(nameof(Status));
-                Execute();
-            }
+                TaskContext.Start();
             else if (Status == TaskStatus.InProgress && now >= EndTime)
-            {
-                TaskContext.SetState(new CompletedState());
-                OnPropertyChanged(nameof(Status));
-                Console.WriteLine($"Задача '{Name}' завершена.");
-            }
+                TaskContext.Complete();
+
+            Status = TaskContext.GetStatus();
+
+            OnPropertyChanged(nameof(Status));
             OnPropertyChanged(nameof(StartTime));
             OnPropertyChanged(nameof(EndTime));
         }
@@ -88,7 +85,7 @@ namespace TaskManagerApp.Models
 
         public void Execute()
         {
-            Console.WriteLine($"[CompositeTask] Задача '{Name}' запущена!");
+            TaskLogger.Log($"Выполнена простая задача: '{Name}' | Время: {StartTime:t} - {EndTime:t}");
         }
 
         public ITaskComponent Clone()
@@ -96,6 +93,7 @@ namespace TaskManagerApp.Models
             return new SimpleTask
             {
                 Name = this.Name,
+                ScriptName = this.ScriptName,
                 StartTime = this.StartTime,
                 EndTime = this.EndTime
             };
@@ -115,6 +113,36 @@ namespace TaskManagerApp.Models
 
             OnPropertyChanged(nameof(StartTime));
             OnPropertyChanged(nameof(EndTime));
+        }
+        public void TryExecute() 
+        {
+            TaskContext.TryExecute();
+            OnPropertyChanged(nameof(Status));
+        }
+
+        public void TryComplete()
+        {
+            TaskContext.TryComplete();
+            OnPropertyChanged(nameof(Status));
+        }
+        public void TryFail()
+        {
+            TaskContext.TryFail();
+            OnPropertyChanged(nameof(Status));
+        }
+        public void TrySkip()
+        {
+            TaskContext.TrySkip();
+            OnPropertyChanged(nameof(Status));
+        }
+
+        public bool CanEdit()
+        {
+            return TaskContext.CanEdit();
+        }
+        public bool CanDelete()
+        {
+            return TaskContext.CanDelete();
         }
     }
 }

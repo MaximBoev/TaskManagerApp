@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using TaskManagerApp.Models.Interfaces;
 
 namespace TaskManagerApp.Models.Decorator
@@ -13,8 +14,21 @@ namespace TaskManagerApp.Models.Decorator
 
         public override void Execute()
         {
-            _innerTask.Execute();
-            Console.WriteLine($" Уведомление: Задача \"{_innerTask.Name}\" скоро начнется в {_innerTask.StartTime}");
+            base.Execute();
+        }
+
+        private bool _notified = false;
+
+        public override void Tick(DateTime now)
+        {
+            var previousStatus = Status;
+            base.Tick(now);
+
+            if (!_notified && previousStatus == TaskStatus.ToDo && Status == TaskStatus.InProgress)
+            {
+                MessageBox.Show($"🔔 Задача '{Name}' началась!", "Уведомление", MessageBoxButton.OK, MessageBoxImage.Information);
+                _notified = true;
+            }
         }
 
         public CompositeTask GetComposite()

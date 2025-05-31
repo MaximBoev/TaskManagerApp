@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TaskManagerApp"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="550" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
@@ -48,11 +49,10 @@
                         <DockPanel>
                             <!-- Левая часть: Название + Время -->
                             <StackPanel Orientation="Vertical" DockPanel.Dock="Left" Width="400">
-                                <TextBlock Text="{Binding Name}"
-                                   FontWeight="Bold"
-                                   FontSize="13"
-                                   TextTrimming="CharacterEllipsis"
-                                   Foreground="#333"/>
+                                <!-- Название задачи -->
+                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="13" TextTrimming="CharacterEllipsis" Foreground="#333"/>
+
+                                <!-- Статус + Время -->
                                 <TextBlock FontSize="11" Foreground="Gray">
                                     <TextBlock.Text>
                                         <MultiBinding StringFormat="{}{0} | {1:t} - {2:t}">
@@ -61,6 +61,12 @@
                                             <Binding Path="EndTime" />
                                         </MultiBinding>
                                     </TextBlock.Text>
+                                </TextBlock>
+
+                                <!-- Скрипт -->
+                                <TextBlock FontSize="10" Foreground="#666" TextWrapping="Wrap" Visibility="{Binding ScriptName, Converter={StaticResource NullToVisibilityConverter}}">
+                                    <Run Text="Скрипт: "/>
+                                    <Run Text="{Binding ScriptName}"/>
                                 </TextBlock>
                             </StackPanel>
 
@@ -79,25 +85,41 @@
             </TreeView.ItemTemplate>
         </TreeView>
 
-        <!-- Основные действия -->
+        <!-- === Основные действия === -->
         <StackPanel Grid.Row="1"
-                Orientation="Horizontal"
-                HorizontalAlignment="Center"
-                Margin="10">
-            <Button Content="🆕 Добавить задачу" Width="160" Margin="5" Click="AddTask_Click"/>
-            <Button Content="➕ Добавить подзадачу" Width="160" Margin="5" Click="AddSubtask_Click"/>
-            <Button Content="✏ Изменить время" Width="160" Margin="5" Click="EditTask_Click"/>
-            <Button Content="⏪ Отменить изменения" Width="160" Margin="5" Click="UndoTask_Click"/>
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Margin="10"
+            >
+            <Button Content="🆕 Добавить задачу"      Width="160" Click="AddTask_Click"/>
+            <Button Content="➕ Добавить подзадачу"   Width="160" Click="AddSubtask_Click"/>
+            <Button Content="✏ Изменить время"       Width="160" Click="EditTask_Click"/>
+            <Button Content="⏪ Отменить изменения"   Width="160" Click="UndoTask_Click"/>
         </StackPanel>
 
-        <!-- Шаблоны и статистика -->
+        <!-- === Шаблоны и статистика === -->
         <StackPanel Grid.Row="2"
-                Orientation="Horizontal"
-                HorizontalAlignment="Center"
-                Margin="10">
-            <Button Content="📋 Сохранить в шаблоны" Width="160" Margin="5" Click="SaveAsPrototype_Click"/>
-            <Button Content="📥 Добавить из шаблонов" Width="160" Margin="5" Click="AddFromPrototype_Click"/>
-            <Button Content="📊 Статистика" Width="160" Margin="5" Click="ShowStats_Click"/>
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Margin="10"
+            >
+            <Button Content="📋 Сохранить в шаблоны"  Width="160" Click="SaveAsPrototype_Click"/>
+            <Button Content="📥 Добавить из шаблонов" Width="160" Click="AddFromPrototype_Click"/>
+            <Button Content="📁 Открыть журнал"       Width="160" Click="OpenLog_Click"/>
+            <Button Content="📊 Статистика"           Width="160" Click="ShowStats_Click"/>
         </StackPanel>
+
+        <!-- === Управление статусами === -->
+        <StackPanel Grid.Row="3"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            Margin="10"
+            >
+            <Button Content="▶ Выполнить"            Width="160" Click="TryExecute_Click"/>
+            <Button Content="✅ Завершить"            Width="160" Click="TryComplete_Click"/>
+            <Button Content="❌ Ошибка"               Width="160" Click="TryFail_Click"/>
+            <Button Content="⏭ Пропустить"           Width="160" Click="TrySkip_Click"/>
+        </StackPanel>
+
     </Grid>
 </Window>

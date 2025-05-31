@@ -7,14 +7,29 @@ using System.Threading.Tasks;
 using System.Windows;
 using TaskManagerApp.Models.Interfaces;
 using TaskManagerApp.Models.Memento;
+using TaskManagerApp.Models.State;
 
 namespace TaskManagerApp.Models.Proxies
 {
-    public class ProtectedTaskProxy : ITaskComponent, ICompositeExtractable
+    public class ProtectedTaskProxy : ITaskComponent, ICompositeExtractable, IScriptAware
     {
         private ITaskComponent _realTask;
         private string _password;
 
+        public string ScriptName
+        {
+            get
+            {
+                if (_realTask is IScriptAware s)
+                    return s.ScriptName;
+                return string.Empty;
+            }
+            set
+            {
+                if (_realTask is IScriptAware s)
+                    s.ScriptName = value;
+            }
+        }
 
         public ProtectedTaskProxy(ITaskComponent realTask, string password)
         {
@@ -45,14 +60,15 @@ namespace TaskManagerApp.Models.Proxies
         public TaskStatus Status
         {
             get => _realTask.Status;
-            set => _realTask.Status = value;
+            //set => _realTask.Status = value;
         }
         public bool IsExpanded { get; set; } = false;
 
         public void AddSubtask(ITaskComponent task) => _realTask.AddSubtask(task);
         public void RemoveSubtask(ITaskComponent task) => _realTask.RemoveSubtask(task);
-        //public List<ITaskComponent> GetSubtasks() => _realTask.GetSubtasks();
         public IEnumerable<ITaskComponent> Subtasks => _realTask.Subtasks;
+        public TaskContext TaskContext => _realTask.TaskContext;
+
         public void Tick(DateTime now)
         {
             if (_realTask.Status == TaskStatus.ToDo && now >= _realTask.StartTime)
@@ -106,6 +122,36 @@ namespace TaskManagerApp.Models.Proxies
         protected void OnPropertyChanged(string propertyName)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        public void TryExecute()
+        {
+            _realTask.TryExecute();
+        }
+
+        public void TryComplete()
+        {
+            _realTask.TryComplete();
+        }
+
+        public void TryFail()
+        {
+            _realTask.TryFail();
+        }
+
+        public void TrySkip()
+        {
+            _realTask.TrySkip();
+        }
+
+        public bool CanEdit()
+        {
+            return _realTask.CanEdit();
+        }
+
+        public bool CanDelete()
+        {
+            return _realTask.CanDelete();
         }
     }
 }

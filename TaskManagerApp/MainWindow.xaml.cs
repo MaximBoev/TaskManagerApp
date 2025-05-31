@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,6 +19,7 @@ using TaskManagerApp.Models;
 using TaskManagerApp.Models.Interfaces;
 using TaskManagerApp.Models.Prototype;
 using TaskManagerApp.ViewModels;
+using System.IO;
 
 namespace TaskManagerApp
 {
@@ -247,6 +249,48 @@ namespace TaskManagerApp
             TaskPrototypeBuffer.Instance.AddPrototype(morning);
             TaskPrototypeBuffer.Instance.AddPrototype(lunch);
             TaskPrototypeBuffer.Instance.AddPrototype(evening);
+        }
+        private void OpenLog_Click(object sender, RoutedEventArgs e)
+        {
+            string logPath = System.IO.Path.Combine("Logs", "tasks.log");
+
+            if (!File.Exists(logPath))
+            {
+                MessageBox.Show("Журнал ещё не создан. Выполните хотя бы одну задачу.", "Нет журнала", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo
+                {
+                    FileName = logPath,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Не удалось открыть журнал: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        private void TryExecute_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedTask?.TryExecute();
+        }
+
+        private void TryComplete_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedTask?.TryComplete();
+        }
+
+        private void TryFail_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedTask?.TryFail();
+        }
+
+        private void TrySkip_Click(object sender, RoutedEventArgs e)
+        {
+            _selectedTask?.TrySkip();
         }
     }
 }
